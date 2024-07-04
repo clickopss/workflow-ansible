@@ -2,7 +2,14 @@ name: Ansible
 
 on:
   workflow_call:
-
+    inputs:
+      ipv4:
+        type: string
+        required: true  
+      ansible_deployment:
+        type: string
+        required: true  
+        
 jobs:
   ansible:
     name: 'Ansible'
