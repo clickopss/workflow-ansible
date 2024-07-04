@@ -1,0 +1,43 @@
+name: Ansible
+
+on:
+  workflow_call:
+
+jobs:
+  ansible:
+    name: 'Ansible'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      ANSIBLE_HOST_KEY_CHECKING: False   
+    
+    steps:
+    - name: Setup Ansible
+      run: |
+        sudo apt update 
+        sudo apt install ansible -y
+        ansible --version
+        
+    - name: Check out Ansible Repo
+      uses: actions/checkout@main
+      with:
+        repository: clickopss/${{ github.event.inputs.status }}
+
+    - name: Setup SSH Keys and known_hosts
+      env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        mkdir ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+
+    - name: Create Inventory File
+      env:
+        public_ip: ${{ needs.terraform.outputs.public_ip }}
+      run: |
+        echo "[all]" > hosts
+        echo "$public_ip ansible_user=root ansible_ssh_private_key_file=~/.ssh/id_ed25519" >> hosts
+
+    - name: Run Ansible Playbook
+      run: |
+        ansible-playbook -i hosts main.yml -vv     
