@@ -9,6 +9,9 @@ on:
       ansible_deployment:
         type: string
         required: true  
+      ssh_private_key:
+        type: string
+        required: true  
         
 jobs:
   ansible:
